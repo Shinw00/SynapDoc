@@ -1,0 +1,201 @@
+{
+  "dept_id": "ID",
+  "dept_name": "감염내과",
+  "version": "0.1",
+  "description": "감염내과가 협진 의뢰서를 받았을 때 판단에 필요한 데이터 체크리스트. 에이전트는 의뢰 내용과 EMR 목차를 보고 무엇을 어떤 범위로 조회할지 스스로 정하되, mandatory 항목은 빠뜨리지 않는다. verify_draft는 mandatory 항목이 초안에 근거와 함께 들어갔는지 검사한다.",
+  "question_types": [
+    {
+      "code": "ABX_SELECT",
+      "label": "항생제 선택/변경",
+      "keywords": [
+        "항생제",
+        "변경",
+        "내성",
+        "ESBL",
+        "감수성"
+      ]
+    },
+    {
+      "code": "CULTURE_INTERP",
+      "label": "배양 결과 해석",
+      "keywords": [
+        "배양",
+        "균",
+        "균혈증",
+        "그람"
+      ]
+    },
+    {
+      "code": "FEVER_WORKUP",
+      "label": "발열 원인 평가",
+      "keywords": [
+        "발열",
+        "열",
+        "원인"
+      ]
+    },
+    {
+      "code": "DURATION",
+      "label": "치료 기간",
+      "keywords": [
+        "기간",
+        "언제까지",
+        "중단"
+      ]
+    },
+    {
+      "code": "SOURCE_CONTROL",
+      "label": "감염원 조절(배액·제거) 필요성",
+      "keywords": [
+        "배액",
+        "농양",
+        "카테터",
+        "제거"
+      ]
+    }
+  ],
+  "required_items": [
+    {
+      "key": "micro",
+      "label": "배양 및 항생제 감수성",
+      "source": "microbiologyevents",
+      "window_days": 14,
+      "mandatory": true,
+      "why": "어떤 균이 어디서 나왔는지, 어떤 항생제에 감수성/내성인지가 항생제 결정의 출발점이다. 음성 배양(no growth)도 함께 보낸다.",
+      "available_time_col": "storetime",
+      "coverage_rule": {
+        "table": "microbiologyevents"
+      },
+      "fetch_hint": "search_microbiology(days=14)"
+    },
+    {
+      "key": "antibiotics",
+      "label": "현재·최근 항생제 (약물, 용량, 경로, 시작일, 투여 중 여부)",
+      "source": "prescriptions",
+      "window_days": 14,
+      "mandatory": true,
+      "why": "이미 쓴 항생제와 기간을 알아야 실패/내성 여부와 다음 선택을 판단할 수 있다.",
+      "available_time_col": "starttime",
+      "filter": {
+        "drug_keywords": [
+          "cillin",
+          "cef",
+          "penem",
+          "floxacin",
+          "mycin",
+          "vancomycin",
+          "tazobactam",
+          "metronidazole",
+          "sulfa",
+          "doxycycline",
+          "linezolid",
+          "daptomycin",
+          "fluconazole",
+          "micafungin"
+        ]
+      },
+      "coverage_rule": {
+        "table": "prescriptions",
+        "drug_keywords_from_filter": true
+      },
+      "fetch_hint": "search_medications(keywords=[항생제 이름 일부], days=14)"
+    },
+    {
+      "key": "abx_admin",
+      "label": "항생제 실제 투여 기록",
+      "source": "emar",
+      "window_days": 14,
+      "mandatory": false,
+      "why": "처방만 있고 실제로 투여되지 않았거나 늦게 들어간 경우를 구분한다.",
+      "available_time_col": "storetime",
+      "filter": {
+        "drug_keywords_ref": "antibiotics"
+      },
+      "fetch_hint": "search_medications(keywords=[...], include_administration=true)"
+    },
+    {
+      "key": "inflam_labs",
+      "label": "염증 수치 추이 (WBC, CRP, Lactate)",
+      "source": "labevents",
+      "labels": [
+        "White Blood Cells",
+        "C-Reactive Protein",
+        "Lactate"
+      ],
+      "window_days": 7,
+      "mandatory": true,
+      "why": "감염의 중증도와 치료 반응을 본다. 단일 값보다 추이가 중요하다.",
+      "available_time_col": "storetime",
+      "coverage_rule": {
+        "table": "labevents",
+        "itemids": [
+          51301,
+          50889,
+          50813
+        ],
+        "min_distinct": 2
+      },
+      "fetch_hint": "search_labs(labels=['White Blood Cells','C-Reactive Protein','Lactate'], days=7)"
+    },
+    {
+      "key": "renal",
+      "label": "신기능 (Creatinine, 기저치 포함)",
+      "source": "labevents",
+      "labels": [
+        "Creatinine"
+      ],
+      "window_days": 7,
+      "include_prior_baseline": true,
+      "mandatory": true,
+      "why": "대부분의 항생제가 신기능에 따라 용량을 조절한다. 기저치와 비교해 급성신손상 여부를 본다.",
+      "available_time_col": "storetime",
+      "coverage_rule": {
+        "table": "labevents",
+        "itemids": [
+          50912
+        ]
+      },
+      "fetch_hint": "search_labs(labels=['Creatinine'], days=7, include_baseline=true)"
+    },
+    {
+      "key": "imaging",
+      "label": "감염 의심 부위 영상 판독",
+      "source": "radiology",
+      "window_days": 14,
+      "mandatory": false,
+      "why": "농양 등 배액이 필요한 감염원이 있는지 판단한다.",
+      "available_time_col": "storetime",
+      "fetch_hint": "search_imaging(days=14)"
+    },
+    {
+      "key": "allergy",
+      "label": "약물 알레르기",
+      "source": "discharge",
+      "scope": "prior_admissions_only",
+      "section": "Allergies:",
+      "mandatory": true,
+      "why": "알레르기 약물은 감수성이 있어도 쓸 수 없다. 현재 입원의 퇴원요약지는 협진 시점에 없으므로 과거 입원 기록에서 가져온다.",
+      "coverage_rule": {
+        "table": "discharge",
+        "quote_contains": "Allergies"
+      },
+      "fetch_hint": "search_prior_notes(section='Allergies:')"
+    },
+    {
+      "key": "history",
+      "label": "기저질환 및 과거력",
+      "source": "discharge",
+      "scope": "prior_admissions_only",
+      "section": "Past Medical History:",
+      "mandatory": false,
+      "why": "당뇨, 면역저하 등 감염 위험인자와 약물 선택에 영향을 주는 기저질환.",
+      "fetch_hint": "search_prior_notes(section='Past Medical History:')"
+    }
+  ],
+  "draft_guidance": [
+    "균명, 검체, 채취일, 감수성(S/R)을 표로 정리할 수 있게 문장을 나눌 것",
+    "현재 투여 중인 항생제가 내성으로 나온 경우 반드시 명시할 것",
+    "신기능은 최신값과 기저치를 함께 쓸 것",
+    "의뢰 질문은 2~4개로 구체적으로, 한 문장에 하나씩 쓸 것 (번호는 자동으로 매겨지므로 붙이지 않는다)"
+  ]
+}

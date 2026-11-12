@@ -1,0 +1,18 @@
+{
+  "note": "가상 의료진 디렉터리. 이메일 도메인 .test 는 실제로 발송되지 않는 예약 도메인이다.",
+  "doctors": [
+    {"doctor_id": "SUR-01", "name": "박도윤", "title": "교수", "dept_id": "SUR", "dept_name": "외과",
+     "email": "doyoon.park@synapdoc-hospital.test", "subspecialty": ["대장항문외과"]},
+
+    {"doctor_id": "ID-01", "name": "이서준", "title": "교수", "dept_id": "ID", "dept_name": "감염내과",
+     "email": "seojun.lee@synapdoc-hospital.test", "subspecialty": ["균혈증", "다제내성균", "ESBL", "CRE"]},
+    {"doctor_id": "ID-02", "name": "최하은", "title": "교수", "dept_id": "ID", "dept_name": "감염내과",
+     "email": "haeun.choi@synapdoc-hospital.test", "subspecialty": ["수술부위감염", "인공관절감염", "골수염"]},
+    {"doctor_id": "ID-03", "name": "정민호", "title": "교수", "dept_id": "ID", "dept_name": "감염내과",
+     "email": "minho.jung@synapdoc-hospital.test", "subspecialty": ["면역저하자 감염", "호중구감소성 발열", "진균감염"]},
+
+    {"doctor_id": "NEP-01", "name": "한지우", "title": "교수", "dept_id": "NEP", "dept_name": "신장내과",
+     "email": "jiwoo.han@synapdoc-hospital.test", "subspecialty": ["급성신손상", "약물 신독성"]}
+  ],
+  "routing_rule": "UI에서 피의뢰 교수를 지정하면 그 교수에게 보낸다. 비워두면 의뢰 내용의 키워드와 subspecialty가 가장 많이 겹치는 교수를 추천하고, 의사가 승인 화면에서 확인·변경한다."
+}

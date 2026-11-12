@@ -1,0 +1,42 @@
+{
+  "template_id": "CONSULT_REQ_v1",
+  "title": "협진 의뢰서",
+  "header_fields": [
+    {"key": "consult_id", "label": "의뢰번호", "source": "system"},
+    {"key": "consult_time", "label": "의뢰일시", "source": "request"},
+    {"key": "urgency", "label": "응급도", "source": "request", "options": ["응급", "긴급", "일반"]},
+    {"key": "requesting", "label": "의뢰과 / 의뢰의", "source": "request"},
+    {"key": "consulted", "label": "피의뢰과 / 피의뢰의", "source": "request+routing"},
+    {"key": "patient", "label": "환자 (등록번호 / 성별 / 나이 / 병동)", "source": "emr"},
+    {"key": "admission", "label": "입원일 / 진료 서비스", "source": "emr"}
+  ],
+  "sections": [
+    {"id": "S1", "title": "의뢰 사유", "required": true, "evidence_policy": "request",
+     "guide": "UI에 입력한 의뢰 내용을 1~2문장으로 정리. 출처는 의뢰의 입력."},
+    {"id": "S2", "title": "진단 및 주요 병력", "required": true, "evidence_policy": "request_or_emr",
+     "guide": "현재 진단/수술(의뢰의 입력), 기저질환(과거 퇴원요약지)."},
+    {"id": "S3", "title": "현 입원 경과 요약", "required": true, "evidence_policy": "emr",
+     "guide": "입원 사유부터 협진 시점까지의 경과를 시간 순으로 3~5문장."},
+    {"id": "S4", "title": "미생물 검사 결과", "required": true, "evidence_policy": "emr",
+     "guide": "검체·채취일·균명·주요 감수성. 음성 배양 포함."},
+    {"id": "S5", "title": "혈액 검사 추이", "required": true, "evidence_policy": "emr",
+     "guide": "WBC, CRP, Lactate 추이와 Creatinine(기저치 대비)."},
+    {"id": "S6", "title": "영상 검사", "required": false, "evidence_policy": "emr",
+     "guide": "판독문 Impression 위주. 수치는 판독문 원문 그대로."},
+    {"id": "S7", "title": "현재 투약 (항생제 중심) 및 알레르기", "required": true, "evidence_policy": "emr",
+     "guide": "현재 투여 중인 항생제, 시작일, 용량. 알레르기."},
+    {"id": "S8", "title": "의뢰 질문", "required": true, "evidence_policy": "request_or_physician",
+     "guide": "구체적 질문 2~4개. 질문 하나가 문장 하나. 번호는 화면에서 자동으로 매기므로 문장에 넣지 않는다."}
+  ],
+  "reply_section": {
+    "title": "회신",
+    "fields": [
+      {"key": "reply_time", "label": "회신일시"},
+      {"key": "replier", "label": "회신의"},
+      {"key": "impression", "label": "소견 (Impression)"},
+      {"key": "recommendations", "label": "권고 (Recommendations)", "type": "list"},
+      {"key": "follow_up", "label": "추후 계획"}
+    ]
+  },
+  "evidence_ref_format": "테이블:ID  (예: labevents:1110, microbiologyevents:8009, radiology:90000001-RR-12, request:request_text)"
+}

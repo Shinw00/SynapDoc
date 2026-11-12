@@ -1,0 +1,12 @@
+{
+  "requesting_doctor_id": "SUR-01",
+  "requesting_dept": "외과",
+  "subject_id": 90000001,
+  "hadm_id": 90100001,
+  "consulted_dept": "감염내과",
+  "consulted_doctor_id": "",
+  "urgency": "긴급",
+  "diagnosis": "S상결장암, 복강경 S상결장절제술 후 POD4 발열",
+  "request_text": "POD4부터 열남. blood cx ESBL E.coli 나옴, 지금 pip/tazo 쓰는중. abx 바꿔야 하는지, 기간은 얼마나? CT상 문합부 옆 fluid 있음",
+  "consult_time": "2181-05-16 11:30:00"
+}

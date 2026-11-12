@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "consult_agent": "./studio.py:graph"
+  },
+  "env": ".env"
+}

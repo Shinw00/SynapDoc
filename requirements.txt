@@ -1,0 +1,19 @@
+# 수업(W05)과 같은 버전
+langchain==1.4.3
+langchain-core==1.6.6
+langgraph==1.2.13
+langgraph-cli[inmem]==0.4.32
+langchain-openai==1.6.7
+python-dotenv==1.2.4
+openpyxl>=3.1
+# SynapDoc 추가
+langgraph-checkpoint-sqlite>=3.0
+fastapi>=0.110
+uvicorn>=0.29
+jinja2>=3.1
+# MIMIC-IV PostgreSQL 에 연결할 때만
+# psycopg[binary]>=3.1
+# 테스트
+pytest>=8
+httpx>=0.27
+aiosmtpd>=1.4

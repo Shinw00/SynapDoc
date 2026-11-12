@@ -1,0 +1,234 @@
+{
+  "_comment": "의뢰의(박도윤 교수)의 수정 요청 '배액술 필요 여부도 물어봐 달라'를 반영한 초안.",
+  "sections": [
+    {
+      "id": "S1",
+      "title": "의뢰 사유",
+      "sentences": [
+        {
+          "sid": "S1-1",
+          "text": "수술 후 발열과 함께 혈액배양에서 ESBL 생성 대장균이 확인되어, 항생제 변경 여부와 치료 기간에 대한 감염내과 의견을 요청드립니다.",
+          "evidence": [
+            "request:request_text"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "title": "진단 및 주요 병력",
+      "sentences": [
+        {
+          "sid": "S2-1",
+          "text": "2181-05-10 입원하여 복강경 S상결장절제술을 시행받았습니다.",
+          "evidence": [
+            "admissions:90100001",
+            {
+              "ref": "radiology:90000001-RR-12",
+              "quote": "postoperative day 4 after laparoscopic sigmoid colectomy"
+            }
+          ]
+        },
+        {
+          "sid": "S2-2",
+          "text": "기저질환으로 고혈압, 제2형 당뇨병(메트포르민 복용), 고지혈증이 있습니다.",
+          "evidence": [
+            {
+              "ref": "discharge:90000001-DS-3",
+              "quote": "Past Medical History:\n- Hypertension\n- Type 2 diabetes mellitus (on metformin)\n- Hyperlipidemia"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "title": "현 입원 경과 요약",
+      "sentences": [
+        {
+          "sid": "S3-1",
+          "text": "수술 후 나흘째인 5/14 새벽 발열과 함께 WBC 16.8 K/uL, Lactate 2.8 mmol/L로 상승하여 혈액배양 두 세트와 소변배양을 시행하였습니다.",
+          "evidence": [
+            "request:request_text",
+            "labevents:1105",
+            "labevents:1108",
+            "microbiologyevents:8001",
+            "microbiologyevents:8015",
+            "microbiologyevents:8016"
+          ]
+        },
+        {
+          "sid": "S3-2",
+          "text": "같은 날 피페라실린-타조박탐 4.5 g 정맥주사를 하루 4회로 시작하여 현재까지 투여 중입니다.",
+          "evidence": [
+            "prescriptions:5005"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S4",
+      "title": "미생물 검사 결과",
+      "sentences": [
+        {
+          "sid": "S4-1",
+          "text": "5/14 채취한 혈액배양 한 세트에서 5/15 그람음성막대균이 보고되었고, 5/16 ESCHERICHIA COLI(ESBL 생성균)로 최종 동정되었습니다.",
+          "evidence": [
+            "microbiologyevents:8001",
+            "microbiologyevents:8002"
+          ]
+        },
+        {
+          "sid": "S4-2",
+          "text": "PIPERACILLIN/TAZO(MIC ≥128), CEFTRIAXONE, CEFEPIME, CIPROFLOXACIN, TRIMETHOPRIM/SULFA에 내성(R)입니다.",
+          "evidence": [
+            "microbiologyevents:8008",
+            "microbiologyevents:8006",
+            "microbiologyevents:8007",
+            "microbiologyevents:8011",
+            "microbiologyevents:8014"
+          ]
+        },
+        {
+          "sid": "S4-3",
+          "text": "MEROPENEM(MIC ≤0.25), ERTAPENEM, GENTAMICIN, AMIKACIN에는 감수성(S)입니다.",
+          "evidence": [
+            "microbiologyevents:8009",
+            "microbiologyevents:8010",
+            "microbiologyevents:8012",
+            "microbiologyevents:8013"
+          ]
+        },
+        {
+          "sid": "S4-4",
+          "text": "나머지 혈액배양 한 세트는 5/16 현재 무성장(no growth to date)이며, 소변배양은 무성장입니다.",
+          "evidence": [
+            "microbiologyevents:8015",
+            "microbiologyevents:8016"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S5",
+      "title": "혈액 검사 추이",
+      "sentences": [
+        {
+          "sid": "S5-1",
+          "text": "WBC는 5/11 9.8 → 5/14 16.8 → 5/15 18.2 → 5/16 17.1 K/uL입니다.",
+          "evidence": [
+            "labevents:1101",
+            "labevents:1105",
+            "labevents:1109",
+            "labevents:1114"
+          ]
+        },
+        {
+          "sid": "S5-2",
+          "text": "CRP는 5/14 182 → 5/15 215 mg/L로 상승하였습니다.",
+          "evidence": [
+            "labevents:1106",
+            "labevents:1110"
+          ]
+        },
+        {
+          "sid": "S5-3",
+          "text": "Lactate는 5/14 2.8에서 5/15 1.9 mmol/L로 감소하였습니다.",
+          "evidence": [
+            "labevents:1108",
+            "labevents:1112"
+          ]
+        },
+        {
+          "sid": "S5-4",
+          "text": "Creatinine은 이전 입원 시 기저치 0.8 mg/dL에서 5/14 1.3 → 5/15 1.6 → 5/16 1.5 mg/dL로 상승한 상태입니다.",
+          "evidence": [
+            "labevents:1001",
+            "labevents:1107",
+            "labevents:1111",
+            "labevents:1113"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S6",
+      "title": "영상 검사",
+      "sentences": [
+        {
+          "sid": "S6-1",
+          "text": "5/14 복부·골반 CT에서 문합부 인접 3.2 x 2.8 cm 크기의 테두리 조영증강 액체 저류가 확인되어 농양이 의심됩니다(문합부 누출 소견은 뚜렷하지 않음).",
+          "evidence": [
+            {
+              "ref": "radiology:90000001-RR-12",
+              "quote": "3.2 x 2.8 cm rim-enhancing fluid collection adjacent to the anastomosis, concerning for abscess.  No definite contrast extravasation to suggest anastomotic leak."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S7",
+      "title": "현재 투약 (항생제 중심) 및 알레르기",
+      "sentences": [
+        {
+          "sid": "S7-1",
+          "text": "현재 피페라실린-타조박탐 4.5 g을 6시간 간격으로 정맥 투여 중이며, 마지막 투여는 5/16 10:00입니다.",
+          "evidence": [
+            "prescriptions:5005",
+            "emar:90000001-E010"
+          ]
+        },
+        {
+          "sid": "S7-2",
+          "text": "약물 알레르기: Sulfa (Sulfonamide Antibiotics).",
+          "evidence": [
+            {
+              "ref": "discharge:90000001-DS-3",
+              "quote": "Allergies:\nSulfa (Sulfonamide Antibiotics)"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "S8",
+      "title": "의뢰 질문",
+      "sentences": [
+        {
+          "sid": "S8-1",
+          "text": "피페라실린-타조박탐에 내성인 ESBL 대장균 균혈증에 대해 카바페넴 계열로 변경하는 것이 적절한지 의견 부탁드립니다.",
+          "evidence": [
+            "request:request_text",
+            "microbiologyevents:8008"
+          ]
+        },
+        {
+          "sid": "S8-2",
+          "text": "권장 치료 기간과 추적 혈액배양 필요 여부에 대해 의견 부탁드립니다.",
+          "evidence": [
+            "request:request_text"
+          ]
+        },
+        {
+          "sid": "S8-3",
+          "text": "현재 신기능을 고려한 항생제 용량 조절에 대해 의견 부탁드립니다.",
+          "evidence": [
+            "labevents:1113"
+          ]
+        },
+        {
+          "sid": "S8-4",
+          "text": "문합부 인접 농양(3.2 x 2.8 cm)에 대한 경피적 배액술 필요 여부에 대해서도 의견 부탁드립니다.",
+          "evidence": [
+            "physician:review_feedback",
+            {
+              "ref": "radiology:90000001-RR-12",
+              "quote": "3.2 x 2.8 cm rim-enhancing fluid collection adjacent to the anastomosis"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

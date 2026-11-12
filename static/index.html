@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SynapDoc 협진 의뢰</title>
+<style>
+  :root { --ink:#1d2433; --mute:#667085; --line:#d0d5dd; --bg:#f6f7f9; --acc:#2f5bd3; --ok:#027a48; --warn:#b54708; --bad:#b42318; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding:14px 24px; background:#fff; border-bottom:1px solid var(--line); display:flex; gap:12px; align-items:baseline; }
+  header b { font-size:18px; } header span { color:var(--mute); font-size:13px; }
+  main { display:grid; grid-template-columns:380px 1fr; gap:16px; padding:16px 24px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+  h3 { margin:0 0 12px; font-size:15px; font-weight:600; }
+  label { display:block; font-size:12px; color:var(--mute); margin:8px 0 3px; }
+  input, select, textarea { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font:inherit; font-size:14px; }
+  textarea { min-height:70px; resize:vertical; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  button { padding:8px 14px; border-radius:6px; border:1px solid var(--line); background:#fff; font:inherit; font-size:14px; cursor:pointer; }
+  button.primary { background:var(--acc); color:#fff; border-color:var(--acc); }
+  button.ok { background:var(--ok); color:#fff; border-color:var(--ok); }
+  button.bad { color:var(--bad); }
+  button:disabled { opacity:.5; cursor:default; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; background:#eef2ff; color:var(--acc); }
+  .pill.awaiting_approval { background:#fffaeb; color:var(--warn); } .pill.sent,.pill.replied { background:#ecfdf3; color:var(--ok); }
+  .pill.error,.pill.needs_attention { background:#fef3f2; color:var(--bad); }
+  ol.trace { margin:0; padding-left:20px; font-size:13px; } ol.trace li { margin:2px 0; }
+  ol.trace code { font-size:12px; color:var(--acc); }
+  .issue { font-size:12px; color:var(--bad); margin-left:8px; }
+  iframe { width:100%; height:900px; border:1px solid var(--line); border-radius:10px; background:#fff; }
+  .muted { color:var(--mute); font-size:13px; }
+  .hidden { display:none; }
+  .approval { border-color:var(--warn); background:#fffcf5; }
+</style>
+</head>
+<body>
+<header><b>SynapDoc</b><span>협진 의뢰서 초안 에이전트 · 참고용 최소 UI</span></header>
+<main>
+  <section>
+    <div class="card" id="formCard">
+      <h3>협진 요청</h3>
+      <div class="row">
+        <div><label>의뢰과</label><select id="requesting_dept"></select></div>
+        <div><label>의뢰의</label><select id="requesting_doctor_id"></select></div>
+      </div>
+      <label>환자 검색 — 이름, 등록번호 또는 병동으로 검색 후 환자를 선택합니다</label>
+      <input id="patient_query" placeholder="예: 김민준 또는 90000001">
+      <div class="btns" style="margin-top:6px"><button type="button" onclick="searchPatients()">환자 검색</button></div>
+      <select id="patient_select"><option value="">환자를 선택하세요</option></select>
+      <div class="muted" id="patient_summary" style="margin-top:6px"></div>
+      <input id="subject_id" type="hidden">
+      <label>입원 기록</label><select id="hadm_id"><option value="">입원 기록을 선택하세요</option></select>
+      <div class="row">
+        <div><label>피의뢰과</label><select id="consulted_dept"></select></div>
+        <div><label>피의뢰의 (비우면 추천)</label><select id="consulted_doctor_id"></select></div>
+      </div>
+      <div class="row">
+        <div><label>응급도</label><select id="urgency"><option>일반</option><option>긴급</option><option>응급</option></select></div>
+        <div><label>협진 기준 시점</label><input id="consult_time" type="datetime-local"></div>
+      </div>
+      <label>현재 진단 / 수술</label><input id="diagnosis" placeholder="현재 진단 또는 수술명을 입력하세요">
+      <label>의뢰 내용 — 메모처럼 대강 적으면 Agent가 EMR을 찾아 의뢰서로 만듭니다</label>
+      <textarea id="request_text" style="min-height:120px" placeholder="예: POD4부터 열남. blood cx ESBL 나옴, pip/tazo 쓰는중. abx 바꿔야 하는지?"></textarea>
+      <div class="btns">
+        <button onclick="fillScenario()">환자 1 예시 메모</button>
+        <button class="primary" id="submitBtn" onclick="submitConsult()">초안 작성 시작</button>
+      </div>
+      <p class="muted" id="formMsg"></p>
+    </div>
+
+    <div class="card hidden" id="statusCard">
+      <h3>진행 상황 <span class="pill" id="statusPill"></span></h3>
+      <div class="muted" id="cidText"></div>
+      <ol class="trace" id="trace"></ol>
+    </div>
+
+    <div class="card approval hidden" id="approvalCard">
+      <h3>발송 승인</h3>
+      <p id="approvalDesc" style="font-size:14px;margin:0 0 8px"></p>
+      <label>받는 교수</label><select id="ap_to"></select>
+      <label>의뢰서 하단 메모 (선택)</label><input id="ap_addendum" placeholder="예: 보호자가 시술 설명을 원합니다">
+      <label>수정 요청 내용 (수정 요청 시)</label><textarea id="ap_message" placeholder="예: 의뢰 질문에 배액술 필요 여부도 추가해 주세요"></textarea>
+      <div class="btns">
+        <button class="ok" onclick="decide('approve')">승인·발송</button>
+        <button onclick="decide('reject')">수정 요청</button>
+        <button class="bad" onclick="decide('cancel')">협진 취소</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="replyCard">
+      <h3>회신 작성 (피의뢰 교수 화면)</h3>
+      <label>회신의</label><input id="rp_replier">
+      <label>소견</label><textarea id="rp_impression"></textarea>
+      <label>권고 (줄마다 하나)</label><textarea id="rp_recs"></textarea>
+      <label>추후 계획</label><input id="rp_follow">
+      <div class="btns"><button class="primary" onclick="sendReply()">회신 등록</button></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card"><h3>의뢰서 미리보기</h3><iframe id="preview" title="의뢰서 미리보기"></iframe></div>
+  </section>
+</main>
+
+<script>
+let META = null, CID = null, TIMER = null, LAST = null;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { headers: { "Content-Type": "application/json" }, ...opts });
+  const body = r.headers.get("content-type")?.includes("json") ? await r.json() : await r.text();
+  if (!r.ok) throw new Error(body.detail || body);
+  return body;
+}
+
+function opt(sel, items, blank) {
+  sel.innerHTML = (blank ? `<option value="">${blank}</option>` : "") +
+    items.map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+}
+
+async function init() {
+  META = await api("/api/meta");
+  opt($("requesting_dept"), [...new Set(META.doctors.map(d => d.dept_name))].map(d => [d, d]));
+  opt($("consulted_dept"), META.departments.map(d => [d, d]), "(Agent가 판단)");
+  opt($("requesting_doctor_id"), META.doctors.map(d => [d.doctor_id, `${d.name} (${d.dept_name})`]));
+  $("requesting_dept").onchange = refreshRequesters;
+  $("requesting_doctor_id").onchange = () => {
+    const d = META.doctors.find(x => x.doctor_id === $("requesting_doctor_id").value);
+    if (d) $("requesting_dept").value = d.dept_name;
+  };
+  refreshConsultants();
+  $("consulted_dept").onchange = refreshConsultants;
+  $("patient_select").onchange = selectPatient;
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  $("consult_time").value = now.toISOString().slice(0, 16);
+}
+
+function refreshRequesters() {
+  const dept = $("requesting_dept").value;
+  opt($("requesting_doctor_id"), META.doctors.filter(d => !dept || d.dept_name === dept)
+    .map(d => [d.doctor_id, `${d.name} (${d.dept_name})`]));
+}
+
+async function searchPatients() {
+  const rows = await api(`/api/patients?q=${encodeURIComponent($("patient_query").value)}`).catch(() => []);
+  opt($("patient_select"), rows.map(p => [p.subject_id, `${p.display_name} · ${p.subject_id} · ${p.gender} · ${p.anchor_age}세`]), "환자를 선택하세요");
+  if (!rows.length) $("patient_summary").textContent = "검색 결과가 없습니다.";
+}
+
+async function selectPatient() {
+  const option = $("patient_select").selectedOptions[0];
+  if (!option || !option.value) return;
+  $("subject_id").value = option.value;
+  const rows = await api(`/api/patients/${option.value}/admissions`).catch(() => []);
+  opt($("hadm_id"), rows.map(a => [a.hadm_id, `${a.hadm_id} · ${a.admittime.slice(0, 10)} · ${a.admission_type}`]), "입원 기록 선택");
+  $("patient_summary").textContent = `${option.textContent} · 입원 기록을 선택하면 해당 입원으로 의뢰합니다.`;
+}
+
+function refreshConsultants() {
+  const dept = $("consulted_dept").value;
+  const docs = META.doctors.filter(d => !dept || d.dept_name === dept)
+    .map(d => [d.doctor_id, `${d.name} (${d.dept_name}) — ${d.subspecialty.join(", ")}`]);
+  opt($("consulted_doctor_id"), dept ? docs : [], "(자동 추천)");
+  opt($("ap_to"), META.doctors.map(d => [d.doctor_id, `${d.name} (${d.dept_name})`]));
+}
+
+async function fillScenario() {
+  $("requesting_doctor_id").value = "SUR-01"; $("requesting_dept").value = "외과";
+  $("patient_query").value = "90000001"; await searchPatients(); $("patient_select").value = "90000001"; await selectPatient();
+  $("consult_time").value = "2181-05-16T11:30"; $("urgency").value = "긴급";
+  $("consulted_dept").value = "감염내과"; refreshConsultants();
+  $("diagnosis").value = "S상결장암, 복강경 S상결장절제술 후 POD4 발열";
+  $("request_text").value = "POD4부터 열남. blood cx ESBL E.coli 나옴, 지금 pip/tazo 쓰는중. abx 바꿔야 하는지, 기간은 얼마나? CT상 문합부 옆 fluid 있음";
+}
+
+async function submitConsult() {
+  const time = $("consult_time").value.replace("T", " ") + ($( "consult_time").value.length === 16 ? ":00" : "");
+  const body = { requesting_doctor_id: $("requesting_doctor_id").value, requesting_dept: $("requesting_dept").value,
+                 subject_id: +$("subject_id").value, request_text: $("request_text").value,
+                 consulted_dept: $("consulted_dept").value, consulted_doctor_id: $("consulted_doctor_id").value,
+                 urgency: $("urgency").value, diagnosis: $("diagnosis").value, consult_time: time };
+  if ($("hadm_id").value) body.hadm_id = +$("hadm_id").value;
+  $("formMsg").textContent = "";
+  try {
+    const r = await api("/api/consults", { method: "POST", body: JSON.stringify(body) });
+    CID = r.consult_id; $("submitBtn").disabled = true;
+    $("statusCard").classList.remove("hidden"); poll();
+  } catch (e) { $("formMsg").textContent = "오류: " + e.message; }
+}
+
+function poll() { clearTimeout(TIMER); refresh(); }
+
+async function refresh() {
+  const st = await api(`/api/consults/${CID}`);
+  $("statusPill").textContent = st.status; $("statusPill").className = "pill " + st.status;
+  $("cidText").textContent = `${CID}${st.final_message ? " · " + st.final_message : ""}${st.error ? " · " + st.error : ""}`;
+  const vmap = {}; st.verifications.forEach(v => vmap[v.draft_version] = v);
+  $("trace").innerHTML = st.trace.map(t => {
+    let extra = "";
+    if (t.tool === "verify_draft") {
+      const v = vmap[+t.result.match(/v(\d+)/)?.[1]];
+      if (v && !v.passed) extra = v.issues.map(i => `<div class="issue">${i.type} ${i.sid} ${i.detail}</div>`).join("");
+    }
+    const args = esc(Object.entries(t.args || {}).filter(([k]) => !["plan", "cover_message"].includes(k))
+      .map(([k, v]) => `${k}=${JSON.stringify(v)}`).join(" "));
+    const plan = t.args?.plan ? `<div class="muted" style="margin-left:8px">계획: ${esc(t.args.plan)}</div>` : "";
+    return `<li><code>${t.tool}</code> <span class="muted">${args}</span> → ${esc(t.result)}${plan}${extra}</li>`;
+  }).join("");
+  if (st.latest_draft_version && st.latest_draft_version !== LAST?.latest_draft_version || st.status !== LAST?.status) {
+    const html = await api(`/api/consults/${CID}/${st.status === "replied" ? "document" : "preview"}`);
+    $("preview").srcdoc = html;
+  }
+  $("approvalCard").classList.toggle("hidden", st.status !== "awaiting_approval");
+  if (st.status === "awaiting_approval") {
+    $("approvalDesc").textContent = st.pending.description;
+    $("ap_to").value = st.pending.args.to_doctor_id;
+  }
+  $("replyCard").classList.toggle("hidden", st.status !== "sent");
+  if (st.status === "sent" && st.sent) $("rp_replier").value = `${st.sent.to.dept_name} ${st.sent.to.name} ${st.sent.to.title}`;
+  LAST = st;
+  if (st.status === "running") TIMER = setTimeout(refresh, 2000);
+}
+
+async function decide(type) {
+  const body = { type };
+  if (type === "approve") {
+    const changed = $("ap_to").value !== LAST.pending.args.to_doctor_id;
+    if (changed || $("ap_addendum").value) Object.assign(body, { type: "edit", to_doctor_id: $("ap_to").value, physician_addendum: $("ap_addendum").value });
+  } else {
+    body.message = $("ap_message").value;
+    if (type === "reject" && !body.message.trim()) { alert("수정 요청 내용을 입력하세요."); return; }
+  }
+  await api(`/api/consults/${CID}/decision`, { method: "POST", body: JSON.stringify(body) });
+  $("ap_message").value = ""; $("approvalCard").classList.add("hidden");
+  setTimeout(poll, 500);
+}
+
+async function sendReply() {
+  await api(`/api/consults/${CID}/reply`, { method: "POST", body: JSON.stringify({
+    replier: $("rp_replier").value, impression: $("rp_impression").value,
+    recommendations: $("rp_recs").value.split("\n").filter(s => s.trim()), follow_up: $("rp_follow").value }) });
+  poll();
+}
+
+init();
+</script>
+</body>
+</html>
