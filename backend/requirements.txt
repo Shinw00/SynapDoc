@@ -1,0 +1,9 @@
+langgraph>=1.0
+langchain>=1.0
+langchain-openai>=1.0
+langgraph-checkpoint-sqlite>=3.0
+fastapi
+uvicorn
+pandas
+openpyxl
+python-dotenv

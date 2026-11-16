@@ -1,0 +1,6 @@
+.env
+__pycache__/
+support/consults.sqlite
+support/checkpoints.sqlite*
+support/test/test.sqlite
+outbox/

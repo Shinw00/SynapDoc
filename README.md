@@ -1,43 +1,40 @@
 # SynapDoc
 
-3차 병동 의사가 환자 ID와 짧은 협진 요청을 입력하면, 에이전트가 협진 시점 이전의 EMR 데이터와 피의뢰과 체크리스트를 조회해 의뢰서 초안을 만듭니다. 초안은 근거 검증을 거친 뒤 의뢰의가 승인·수정·반려할 수 있고, 승인된 문서만 피의뢰 교수에게 발송됩니다.
+감염내과 협진 의뢰서 초안을 만들고, 원문과 대조해 검증한 뒤, 의사의 승인을 받아 보내는 에이전트.
 
-현재 프로토타입 범위는 환자 1명과 특정 피의뢰과 1개입니다. 데이터와 의사·과 정보는 JSON/SQLite 합성 데이터로 대체되어 있으며, 실제 MIMIC-IV 연결은 이후 단계입니다.
+```
+SynapDoc/
+├── backend/    에이전트(LangGraph) + API(FastAPI) + 메일 + 테스트 데이터   → backend/README.md
+└── frontend/   화면(React + Vite)
+```
 
 ## 실행
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+터미널 두 개를 쓴다.
+
+```bash
+# 1) 백엔드
+cd backend
 pip install -r requirements.txt
-python support/build_synthetic.py
-uvicorn api:app --reload
+cp .env.example .env            # HAI_API_KEY, HAI_MODEL 을 채운다
+uvicorn api:app --reload --port 8000
+
+# 2) 화면
+cd frontend
+npm install
+npm run dev                     # http://localhost:5173
 ```
 
-`support/build_synthetic.py`는 프로젝트 루트의 `SynapDoc 가상 EMR 데이터 (환자 1).xlsx`를 읽어 `support/emr.sqlite`와 `support/synthetic/*.csv`를 다시 만듭니다.
+화면에서 "환자 1 예시로 채우기"를 누르고 "초안 만들기"를 누르면 된다.
 
-브라우저에서 `http://localhost:8000`을 열어 의뢰과, 의뢰의, 피의뢰과, 피의뢰의, 환자 검색·선택, 응급도, 협진 기준 시점, 현재 진단, 간단한 의뢰 내용을 입력합니다. 기본 메일 모드는 실제 발송 없이 `support/consults/<consult_id>/sent.eml`로 저장하는 `outbox`입니다.
+## 화면
 
-## 핵심 흐름
+- **의뢰 작성**: 환자, 기준 시점, 의뢰과, 의뢰의, 응급도, 요청 내용
+- **초안 검토**: 왼쪽은 의뢰서, 오른쪽은 고른 문장의 근거 기록.
+  밑줄 색이 검증 상태다 (초록 실선 = 원문과 일치, 호박 점선 = 의뢰의 기재, 빨강 = 확인 필요).
+  문장을 고치거나 지우고, 제안된 질문을 고르고, 질문과 메모를 더한 뒤 승인한다.
+- **발송 결과**: 보낸 메일과 의뢰서, 감염내과 회신 기록, 재협진 작성
+- **협진 이력**: 환자별로 보낸 의뢰서와 회신
 
-1. `POST /api/consults`가 입력을 검증하고 협진 작업을 시작합니다.
-2. 에이전트가 환자 기본 정보, 입원 기록, 과거 노트, 검사·배양·약물·영상 자료를 조회합니다.
-3. `support/resources/dept_profile_ID.json`의 피의뢰과 요구 데이터와 `consult_template.json`을 기준으로 초안을 작성합니다.
-4. 초안의 문장별 근거, 협진 시점 이후 데이터 유입, 수치 불일치, 필수 항목 누락을 검증합니다.
-5. 의뢰의 승인 후에만 `doctors.json`의 피의뢰 교수에게 메일을 만듭니다.
-
-## 주요 파일
-
-- `api.py`, `static/index.html`: 웹 API와 프로토타입 UI
-- `graph.py`, `middleware.py`, `tools.py`: 단일 협진 에이전트와 안전장치
-- `support/emr.py`, `support/data.py`: EMR 조회와 협진 상태 저장
-- `support/writer.py`, `support/verify.py`, `support/render.py`: 초안 작성·검증·HTML 문서화
-- `support/mailer.py`: outbox 저장 또는 SMTP 발송
-- `support/resources/*.json`: 피의뢰과 체크리스트, 의사 디렉터리, 문서 템플릿
-- `scenarios/patient1_request.json`: 현재 시연용 환자 1명 입력 예시
-
-## 데이터 범위 주의
-
-협진 시점 이후의 기록은 초안에 사용하지 않도록 조회 함수가 기준 시각으로 필터링합니다. 현재 합성 데이터는 시연용이므로, 실제 MIMIC-HOPE/MIMIC-IV를 연결할 때는 데이터 사용 권한과 비식별화 상태를 별도로 확인해야 합니다.
-
-`W05_Middleware.zip`은 영화 예매를 소재로 한 수업용 Middleware 예제입니다. 구조와 승인·검증 개념만 참고하고, 예매 도메인 코드는 SynapDoc에 포함하지 않습니다.
+백엔드 주소가 `http://localhost:8000` 이 아니면 `frontend/.env` 에 `VITE_API_URL` 을 적는다.
+화면을 다른 포트에서 띄우면 `backend/.env` 의 `CORS_ORIGINS` 에 그 주소를 더한다.

@@ -1,9 +1,0 @@
-.env
-.venv/
-__pycache__/
-.pytest_cache/
-.langgraph_api/
-support/emr.sqlite
-support/synthetic/
-support/consults/
-support/checkpoints.sqlite*
